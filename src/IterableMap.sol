@@ -42,18 +42,19 @@ library IterableMapping {
             mstore(0x0, key)
             mstore(0x20, add(map.slot, 3))
             let insertHash := keccak256(0x0, 64)
-            let cond := sload(insertHash)
+            let cond := sload(insertHash) // checks if `key` exists
 
             if cond {
+                // Updating with `val` if `key` already exists
                 mstore(0x20, add(map.slot, 1))
                 sstore(keccak256(0x0, 64), val)
             }
 
             if iszero(cond) {
                 sstore(insertHash, 1)
-                mstore(0x20, add(map.slot, 1))
+                mstore(0x20, add(map.slot, 1)) // `Map.values` slot
                 sstore(keccak256(0x0, 64), val)
-                mstore(0x20, add(map.slot, 2))
+                mstore(0x20, add(map.slot, 2)) // `Map.indexOf` slot
 
                 let keysLength := sload(map.slot)
                 // storing the keys length
@@ -78,25 +79,24 @@ library IterableMapping {
         assembly {
             let keysSlot := map.slot
             let keysLength := sload(keysSlot)
-            let lastIndex := sub(keysLength, 1)
-            let freePtr := mload(0x40)
 
             mstore(0x0, shr(96, shl(96, key)))
-            mstore(0x20, add(keysSlot, 2)) // indexOf slot
+            mstore(0x20, add(keysSlot, 2)) // `Map.indexOf` slot
             let index := sload(keccak256(0x0, 64))
 
             mstore(0x60, keysSlot)
             // swap the key to delete with the last key
-            let lastKey := sload(add(keccak256(0x60, 32), lastIndex))
+            let lastKey := sload(add(keccak256(0x60, 32), sub(keysLength, 1)))
 
+            // Update the index value in `Map.keys` to `lastKey`
             mstore(0x60, keysSlot)
             sstore(add(keccak256(0x60, 32), index), lastKey)
 
+            // Update the lastKey's index
             mstore(0x0, lastKey)
-            sstore(keccak256(0x0, 64), index)
+            sstore(keccak256(0x0, 64), index) 
             
             mstore(0x60, 0) // restore zero slot
-            mstore(0x40, freePtr) // restore the free memory pointer
         }
 
         map.keys.pop();
