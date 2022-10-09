@@ -1,1 +1,4 @@
-TestContract:testBar() (gas: 401)
+TestIterableMap:testGetandSet() (gas: 146320)
+TestIterableMap:testIterableMap() (gas: 271092)
+TestIterableMap:testRemove() (gas: 260284)
+TestIterableMap:testSize() (gas: 145306)

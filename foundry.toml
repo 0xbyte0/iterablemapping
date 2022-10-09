@@ -1,2 +1,3 @@
-[ci]
+[profile.ci]
 fuzz-runs = 10_000
+gas_reports = ["*"]
